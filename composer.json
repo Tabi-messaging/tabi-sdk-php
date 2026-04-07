@@ -1,0 +1,30 @@
+{
+    "name": "tabi/sdk",
+    "description": "Official PHP SDK for the Tabi WhatsApp business messaging API",
+    "license": "MIT",
+    "type": "library",
+    "keywords": ["tabi", "whatsapp", "api", "sdk", "messaging", "business"],
+    "homepage": "https://c36.online/sdks",
+    "support": {
+        "issues": "https://github.com/Tabi-messaging/tabi-sdk-php/issues",
+        "source": "https://github.com/Tabi-messaging/tabi-sdk-php"
+    },
+    "authors": [
+        {
+            "name": "Tabi",
+            "homepage": "https://c36.online"
+        }
+    ],
+    "require": {
+        "php": ">=8.1",
+        "ext-curl": "*",
+        "ext-json": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Tabi\\SDK\\": "src/"
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
