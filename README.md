@@ -34,12 +34,34 @@ $tabi->messages()->send('channel-id', [
     'content' => 'Hello from Tabi SDK!',
 ]);
 
-// Optional: media
+// Send media (image, video, audio, document)
 $tabi->messages()->send('channel-id', [
     'to' => '2348012345678',
     'content' => 'See attached',
-    'messageType' => 'image',
+    'messageType' => 'image',   // image | video | audio | document
     'mediaUrl' => 'https://example.com/image.png',
+]);
+
+// Send a poll
+$tabi->messages()->sendPoll('channel-id', [
+    'to' => '2348012345678',
+    'question' => 'What do you prefer?',
+    'options' => ['Option A', 'Option B', 'Option C'],
+    'maxAnswer' => 1,
+]);
+
+// Send a contact card
+$tabi->messages()->sendContact('channel-id', [
+    'to' => '2348012345678',
+    'contactName' => 'Jane Doe',
+    'contactPhone' => '2348099999999',
+]);
+
+// Send a location
+$tabi->messages()->sendLocation('channel-id', [
+    'to' => '2348012345678',
+    'latitude' => '6.5244',
+    'longitude' => '3.3792',
 ]);
 ```
 
