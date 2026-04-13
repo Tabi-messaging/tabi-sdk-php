@@ -36,18 +36,9 @@
 
 4. On [Packagist](https://packagist.org/packages/tabi/sdk), use **Update** if the webhook did not fire; the new version usually appears within a few minutes.
 
-## If you edited the copy inside the WaAPI monorepo
+## If you edited a duplicate checkout elsewhere
 
-That folder is **not** what Packagist watches. To publish those changes:
-
-1. Clone or `cd` into `tabi-sdk-php` as above.
-2. Copy files from the monorepo path into the clone (preserve structure), e.g.:
-
-   ```bash
-   rsync -a --delete /path/to/PSIRS-INFRA/projects/waapi/packages/tabi-sdk-php/ ./ --exclude .git
-   ```
-
-3. Review `git diff`, commit, push to `main`, then **tag and push the tag** as in *Cutting a release*.
+If you maintain the same tree in another directory, copy those files into **this** repository (the one Packagist tracks), then commit, push, and tag as in *Cutting a release*. Use `rsync` or your usual merge process; exclude `.git` so you do not overwrite this repo’s history.
 
 ## Before tagging
 

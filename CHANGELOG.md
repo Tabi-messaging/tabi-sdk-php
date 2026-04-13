@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.2.1 - 2026-04-13
+
+### Changed
+
+- README expanded to full resource documentation (parity with the JavaScript SDK guide); removed internal maintainer notes from the public package readme.
+- `PUBLISHING.md`: generic maintainer sync notes only (no internal path names).
+
 ## 0.2.0 - 2026-04-13
 
 ### Changed
