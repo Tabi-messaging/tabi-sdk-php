@@ -23,11 +23,18 @@ use Tabi\SDK\Resources\{
     Workspaces,
 };
 
+/**
+ * Tabi API client. Each fluent method returns a resource group aligned with REST paths
+ * (e.g. channels(), messages(), apiKeys()).
+ *
+ * Pass a workspace or channel API key for integration calls, or a user JWT when an
+ * endpoint requires dashboard auth (e.g. creating API keys).
+ */
 class TabiClient
 {
     private HttpClient $http;
 
-    public function __construct(string $apiKey, string $baseUrl = 'https://api.c36.online/api/v1')
+    public function __construct(string $apiKey, string $baseUrl = 'https://api.tabi.africa/api/v1')
     {
         $this->http = new HttpClient($baseUrl, $apiKey);
     }

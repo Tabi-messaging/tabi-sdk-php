@@ -1,20 +1,16 @@
 # tabi/sdk
 
-Official PHP SDK for the **Tabi** WhatsApp business messaging API.
+Official **PHP** SDK for the [Tabi](https://tabi.africa) WhatsApp Business Messaging API.
 
-## Requirements
+**Source of truth:** develop and release from [`Tabi-messaging/tabi-sdk-php`](https://github.com/Tabi-messaging/tabi-sdk-php) (Packagist tracks that repo). A copy may also exist under `projects/waapi/packages/tabi-sdk-php` in the WaAPI monorepo for reference—treat GitHub as canonical. See [`PUBLISHING.md`](./PUBLISHING.md).
 
-- PHP >= 8.1
-- cURL extension
-- JSON extension
+**Requirements:** PHP 8.1+, ext-curl, ext-json.
 
 ## Install
 
 ```bash
 composer require tabi/sdk
 ```
-
-[Packagist package](https://packagist.org/packages/tabi/sdk) · [Source on GitHub](https://github.com/Tabi-messaging/tabi-sdk-php) · [Full app repo](https://github.com/Tabi-messaging/tabi-full-app-system)
 
 ## Quick start
 
@@ -23,90 +19,63 @@ composer require tabi/sdk
 
 use Tabi\SDK\TabiClient;
 
-$tabi = new TabiClient('tk_your_api_key', 'https://api.c36.online/api/v1');
+$tabi = new TabiClient(
+    'tk_your_api_key_or_jwt',
+    'https://api.tabi.africa/api/v1'
+);
 
-// List channels
 $channels = $tabi->channels()->list();
-
-// Send a text message (API expects "content", not "text")
-$tabi->messages()->send('channel-id', [
+$tabi->messages()->send('channel-uuid', [
     'to' => '2348012345678',
-    'content' => 'Hello from Tabi SDK!',
-]);
-
-// Send media (image, video, audio, document)
-$tabi->messages()->send('channel-id', [
-    'to' => '2348012345678',
-    'content' => 'See attached',
-    'messageType' => 'image',   // image | video | audio | document
-    'mediaUrl' => 'https://example.com/image.png',
-]);
-
-// Send a poll
-$tabi->messages()->sendPoll('channel-id', [
-    'to' => '2348012345678',
-    'question' => 'What do you prefer?',
-    'options' => ['Option A', 'Option B', 'Option C'],
-    'maxAnswer' => 1,
-]);
-
-// Send a contact card
-$tabi->messages()->sendContact('channel-id', [
-    'to' => '2348012345678',
-    'contactName' => 'Jane Doe',
-    'contactPhone' => '2348099999999',
-]);
-
-// Send a location
-$tabi->messages()->sendLocation('channel-id', [
-    'to' => '2348012345678',
-    'latitude' => '6.5244',
-    'longitude' => '3.3792',
+    'content' => 'Hello from PHP!',
 ]);
 ```
 
-## Dashboard-only channel actions
+## Resource groups (feature areas)
 
-Some endpoints require a **signed-in user JWT** (not a channel API key): `connect`, `disconnect`, `reconnect`, `delete`, and `update` (including toggling the risk engine). Use these from a server that holds a user access token, or call them from the Tabi dashboard.
+| Group | Client methods | Purpose |
+|-------|----------------|---------|
+| Getting started | `auth()`, `workspaces()` | Login/register/tokens; workspaces & members |
+| Messaging | `channels()`, `messages()`, `conversations()`, `contacts()`, `quickReplies()`, `notifications()` | Lines, sends, inbox, contacts |
+| Automations & campaigns | `automationTemplates()`, `automationInstalls()`, `campaigns()` | Templates, installs, broadcasts |
+| Integrations | `apiKeys()`, `webhooks()`, `integrations()` | Keys, webhooks, external links |
+| Media & insights | `files()`, `analytics()` | Uploads, stats |
+
+## API keys — `create(array $data)`
+
+`POST /api/v1/api-keys`. **Creating keys requires a user JWT** from the dashboard, not an API key.
+
+| Key | Type | Required | Description |
+|-----|------|----------|-------------|
+| `name` | string | yes | Label in the dashboard |
+| `channelId` | string (UUID) | no | Restrict key to one channel |
+| `scopes` | string[] | no | e.g. `['channels:read', 'messages:send']`; omit for full access in scope |
+| `expiresAt` | string (ISO 8601) | no | Key stops working after this time |
 
 ```php
-// Example with a workspace user JWT (not tk_ API key)
-$tabi->channels()->update('channel-id', ['riskEngineEnabled' => false]);
-$tabi->channels()->reconnect('channel-id');
+$key = $tabi->apiKeys()->create([
+    'name' => 'Production integration',
+    'scopes' => ['messages:send', 'channels:read'],
+]);
+// $key['rawKey'] is shown only once — store it securely.
 ```
 
-## Resources
-
-| Resource | Method | Description |
-|----------|--------|-------------|
-| Auth | `auth()` | Login, register, refresh, me |
-| Channels | `channels()` | List, get, status; update/reconnect with JWT |
-| Messages | `messages()` | Send (`content` + `to`), media, polls, reactions |
-| Contacts | `contacts()` | CRUD, import, tags, opt-in/out |
-| Conversations | `conversations()` | List, resolve, reopen |
-| Webhooks | `webhooks()` | CRUD, ping, delivery logs |
-| API Keys | `apiKeys()` | Create, list, revoke |
-| Files | `files()` | List, get URL |
-| Campaigns | `campaigns()` | CRUD, schedule, pause, cancel |
-| Automation | `automationTemplates()`, `automationInstalls()` | Templates & installs |
-| Quick Replies | `quickReplies()` | CRUD |
-| Analytics | `analytics()` | Dashboard, channels, conversations |
-| Notifications | `notifications()` | List, mark read |
-| Integrations | `integrations()` | Providers & connections |
-| Workspaces | `workspaces()` | Workspaces & members |
-
-## Error handling
+**List keys** (optional filter):
 
 ```php
-use Tabi\SDK\TabiException;
-
-try {
-    $tabi->messages()->send('ch-id', ['to' => '234...', 'content' => 'Hi']);
-} catch (TabiException $e) {
-    echo $e->statusCode . ': ' . $e->getMessage();
-}
+$all = $tabi->apiKeys()->list();
+$forChannel = $tabi->apiKeys()->list(['channelId' => 'uuid-here']);
 ```
+
+## Documentation
+
+- Public OpenAPI & guides: [tabi.africa/api-docs](https://tabi.africa/api-docs) (or your deployment’s `/api-docs`).
+- JavaScript SDK (reference parity): [`tabi-sdk` on npm](https://www.npmjs.com/package/tabi-sdk).
+
+## Support
+
+- Issues: [tabi-sdk-php](https://github.com/Tabi-messaging/tabi-sdk-php) (see `composer.json` → `support`).
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT
