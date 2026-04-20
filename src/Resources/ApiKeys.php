@@ -7,9 +7,9 @@ namespace Tabi\SDK\Resources;
 use Tabi\SDK\HttpClient;
 
 /**
- * Workspace API keys — list, create, revoke, delete.
+ * Workspace API keys — create, list, revoke, delete.
  *
- * @see https://api.tabi.africa/api-docs (API Keys tag)
+ * @see https://tabi.africa/api-docs
  */
 class ApiKeys
 {
@@ -18,15 +18,14 @@ class ApiKeys
     /**
      * Create a new API key. Requires a **user JWT** (dashboard session), not an API key.
      *
-     * Request body keys:
-     * - **name** (string, required) — label shown in Settings → API Keys
-     * - **channelId** (string UUID, optional) — restrict key to one channel
-     * - **scopes** (string[], optional) — e.g. `['channels:read','messages:send']`; omit for full access in scope
-     * - **expiresAt** (string ISO 8601, optional) — key stops working after this instant
-     *
      * Response `data` includes **rawKey** only once — persist it immediately.
      *
-     * @param array<string, mixed> $data
+     * @param array{
+     *   name: string,
+     *   channelId?: string,
+     *   scopes?: string[],
+     *   expiresAt?: string
+     * } $data `expiresAt` is an ISO 8601 instant. `scopes` examples: `channels:read`, `messages:send`.
      */
     public function create(array $data): mixed
     {
@@ -36,7 +35,7 @@ class ApiKeys
     /**
      * List API keys for the workspace.
      *
-     * @param array<string, string>|null $query e.g. `['channelId' => 'uuid']` to filter
+     * @param array{channelId?: string}|null $query Pass `channelId` to restrict the list to keys for that channel
      */
     public function list(?array $query = null): mixed
     {

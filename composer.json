@@ -6,8 +6,7 @@
     "keywords": ["tabi", "whatsapp", "api", "sdk", "messaging", "business"],
     "homepage": "https://tabi.africa/sdks",
     "support": {
-        "issues": "https://github.com/Tabi-messaging/tabi-sdk-php/issues",
-        "source": "https://github.com/Tabi-messaging/tabi-sdk-php"
+        "docs": "https://tabi.africa/sdks"
     },
     "authors": [
         {

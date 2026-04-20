@@ -6,18 +6,29 @@ namespace Tabi\SDK\Resources;
 
 use Tabi\SDK\HttpClient;
 
+/**
+ * Webhook subscriptions, delivery logs, test capture.
+ *
+ * @see https://tabi.africa/api-docs
+ */
 class Webhooks
 {
     public function __construct(private readonly HttpClient $http) {}
 
+    /**
+     * @param array{url: string, events: string[], channelId?: string} $data `events` must be a non-empty list of event names
+     */
     public function create(array $data): mixed
     {
         return $this->http->post('/webhooks', $data);
     }
 
-    public function list(): mixed
+    /**
+     * @param array{channelId?: string}|null $query Optional filter for one channel
+     */
+    public function list(?array $query = null): mixed
     {
-        return $this->http->get('/webhooks');
+        return $this->http->get('/webhooks', $query);
     }
 
     public function get(string $id): mixed
@@ -25,6 +36,9 @@ class Webhooks
         return $this->http->get("/webhooks/{$id}");
     }
 
+    /**
+     * @param array{url?: string, events?: string[], isActive?: bool} $data
+     */
     public function update(string $id, array $data): mixed
     {
         return $this->http->patch("/webhooks/{$id}", $data);
@@ -45,23 +59,35 @@ class Webhooks
         return $this->http->post("/webhooks/{$id}/rotate-secret");
     }
 
+    /**
+     * @param array{channelId?: string, limit?: int}|null $query
+     */
     public function deliveryLogs(?array $query = null): mixed
     {
         return $this->http->get('/webhooks/delivery-logs', $query);
     }
 
-    public function startTestCapture(): mixed
+    /**
+     * @param array{channelId: string} $data Channel to capture test webhooks for
+     */
+    public function startTestCapture(array $data): mixed
     {
-        return $this->http->post('/webhooks/test-capture/start');
+        return $this->http->post('/webhooks/test-capture/start', $data);
     }
 
-    public function stopTestCapture(): mixed
+    /**
+     * @param array{channelId: string} $data
+     */
+    public function stopTestCapture(array $data): mixed
     {
-        return $this->http->post('/webhooks/test-capture/stop');
+        return $this->http->post('/webhooks/test-capture/stop', $data);
     }
 
-    public function testCaptureStatus(): mixed
+    /**
+     * @param array{channelId: string} $query Required `channelId` query parameter
+     */
+    public function testCaptureStatus(array $query): mixed
     {
-        return $this->http->get('/webhooks/test-capture/status');
+        return $this->http->get('/webhooks/test-capture/status', $query);
     }
 }

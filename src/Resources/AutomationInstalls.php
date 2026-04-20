@@ -6,10 +6,22 @@ namespace Tabi\SDK\Resources;
 
 use Tabi\SDK\HttpClient;
 
+/**
+ * Installed automations for the workspace.
+ *
+ * @see https://tabi.africa/api-docs
+ */
 class AutomationInstalls
 {
     public function __construct(private readonly HttpClient $http) {}
 
+    /**
+     * @param array{
+     *   templateId: string,
+     *   config?: array<string, mixed>,
+     *   isEnabled?: bool
+     * } $data
+     */
     public function install(array $data): mixed
     {
         return $this->http->post('/automation-installs', $data);
@@ -25,6 +37,9 @@ class AutomationInstalls
         return $this->http->get("/automation-installs/{$id}");
     }
 
+    /**
+     * @param array{config?: array<string, mixed>, isEnabled?: bool} $data
+     */
     public function update(string $id, array $data): mixed
     {
         return $this->http->patch("/automation-installs/{$id}", $data);

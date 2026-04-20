@@ -12,6 +12,7 @@
 - [Installation](#installation)
 - [Getting Started](#getting-started)
 - [Configuration](#configuration)
+- [OTP over WhatsApp](#otp-over-whatsapp)
 - [Resource groups](#resource-groups-feature-areas)
 - [Resources](#resources)
   - [Auth](#auth)
@@ -63,12 +64,12 @@ $result = $tabi->messages()->send('your-channel-id', [
 ]);
 ```
 
-**Where to find your credentials:**
+**Credential sources**
 
 | Value | Location |
 |-------|----------|
 | API key / JWT | Dashboard → Developer → API Keys (or login flow for JWT) |
-| Base URL | `https://api.tabi.africa/api/v1` (default if you omit the second constructor argument) |
+| Base URL | `https://api.tabi.africa/api/v1` (default when the second constructor argument is omitted) |
 | Channel ID | Dashboard → Channels → open a channel → copy the ID from the URL |
 
 ## Configuration
@@ -79,6 +80,43 @@ $tabi = new TabiClient(
     'https://api.tabi.africa/api/v1' // optional — defaults to production API base
 );
 ```
+
+---
+
+## OTP over WhatsApp
+
+Hosted OTP uses `Tabi\SDK\Resources\Channels::sendOtp` and `verifyOtp`, which map to `POST /channels/{channelId}/otp/send` and `POST /channels/{channelId}/otp/verify` on the Tabi API.
+
+### Hosted OTP (recommended)
+
+1. Create or reuse a workspace API key (or JWT) with the same scopes as `messages()->send()` (for example `messages:send`).
+2. Call `sendOtp` with the channel UUID and an E.164 `phone` value.
+3. Call `verifyOtp` with the same channel, `phone`, and the code the user submitted.
+
+```php
+<?php
+
+$tabi->channels()->sendOtp('channel-uuid', ['phone' => '+2347000000000']);
+$tabi->channels()->verifyOtp('channel-uuid', [
+    'phone' => '+2347000000000',
+    'code' => '123456',
+]);
+```
+
+**REST:** `POST /api/v1/channels/{channelId}/otp/send` and `POST /api/v1/channels/{channelId}/otp/verify`.
+
+**Security:** Call these endpoints only from server-side code. Client applications must talk to the integrator’s backend; the Tabi API key must not be embedded in mobile or browser clients.
+
+### Compliance and rate limits
+
+- OTP traffic shares the same WhatsApp Business channel and rate limits as other sends.
+- Follow Meta / WhatsApp Business policies for templates, opt-in, and account configuration (Meta Business Manager).
+- Limit OTP to legitimate verification flows (for example sign-in); do not use it for cold outreach or bulk marketing.
+
+### Custom OTP (without hosted routes)
+
+1. Generate codes and store hashes in application-controlled storage (for example Redis).
+2. Deliver the code with `messages()->send()`, using `messageClass` and other fields as required by the HTTP API reference for transactional messages.
 
 ---
 
@@ -93,6 +131,8 @@ The SDK mirrors how the **Tabi API** is organised. Each method on `TabiClient` r
 | Automations & campaigns | `automationTemplates()`, `automationInstalls()`, `campaigns()` | Template catalog, installed flows, broadcasts |
 | Integrations | `apiKeys()`, `webhooks()`, `integrations()` | Keys (create with JWT), outbound webhooks, third-party links |
 | Media & insights | `files()`, `analytics()` | Uploads, KPIs |
+
+**Request parameters:** Resource methods document JSON bodies and query maps in PHPDoc using `array{ key: type, … }` shapes. These mirror the REST DTOs in the [HTTP API reference](https://tabi.africa/api-docs) (OpenAPI schemas).
 
 ---
 
@@ -136,7 +176,7 @@ $tabi->channels()->get('channel-id');
 
 $tabi->channels()->create([
     'name' => 'Support Line',
-    'provider' => 'go-whatsapp',
+    'provider' => 'messaging',
 ]);
 
 $tabi->channels()->connect('channel-id');
@@ -152,6 +192,10 @@ $tabi->channels()->delete('channel-id');
 $tabi->channels()->update('channel-id', ['riskEngineEnabled' => false]);
 
 $tabi->channels()->reconnect('channel-id');
+
+// Hosted OTP — same API key / scopes as messages()->send() — see "OTP over WhatsApp" above
+$tabi->channels()->sendOtp('channel-id', ['phone' => '+2347000000000']);
+$tabi->channels()->verifyOtp('channel-id', ['phone' => '+2347000000000', 'code' => '123456']);
 ```
 
 ---
@@ -243,19 +287,18 @@ $tabi->contacts()->get('contact-id');
 
 $tabi->contacts()->create([
     'phone' => '2348012345678',
-    'firstName' => 'John',
-    'lastName' => 'Doe',
+    'name' => 'John Doe',
     'email' => 'john@example.com',
 ]);
 
-$tabi->contacts()->update('contact-id', ['firstName' => 'Jonathan']);
+$tabi->contacts()->update('contact-id', ['name' => 'Johnathan Doe']);
 
 $tabi->contacts()->delete('contact-id');
 
 $tabi->contacts()->import([
     'contacts' => [
-        ['phone' => '2348012345678', 'firstName' => 'Alice'],
-        ['phone' => '2348087654321', 'firstName' => 'Bob'],
+        ['phone' => '2348012345678', 'name' => 'Alice'],
+        ['phone' => '2348087654321', 'name' => 'Bob'],
     ],
 ]);
 
@@ -310,11 +353,11 @@ $tabi->webhooks()->update('webhook-id', [
 $tabi->webhooks()->ping('webhook-id');
 $tabi->webhooks()->rotateSecret('webhook-id');
 
-$tabi->webhooks()->deliveryLogs(['page' => 1, 'limit' => 50]);
+$tabi->webhooks()->deliveryLogs(['channelId' => 'channel-uuid', 'limit' => 50]);
 
-$tabi->webhooks()->startTestCapture();
-$tabi->webhooks()->testCaptureStatus();
-$tabi->webhooks()->stopTestCapture();
+$tabi->webhooks()->startTestCapture(['channelId' => 'channel-uuid']);
+$tabi->webhooks()->testCaptureStatus(['channelId' => 'channel-uuid']);
+$tabi->webhooks()->stopTestCapture(['channelId' => 'channel-uuid']);
 
 $tabi->webhooks()->delete('webhook-id');
 ```
@@ -369,7 +412,7 @@ Draft, schedule, and control broadcast campaigns.
 $tabi->campaigns()->create([
     'name' => 'Promo Blast',
     'channelId' => 'channel-id',
-    'message' => ['text' => 'Flash sale — 50% off today!'],
+    'content' => 'Flash sale — 50% off today!',
     'audienceFilter' => ['tags' => ['subscribers']],
 ]);
 
@@ -405,8 +448,7 @@ Install, configure, enable/disable, uninstall.
 
 ```php
 $tabi->automationInstalls()->install([
-    'templateId' => 'template-id',
-    'channelId' => 'channel-id',
+    'templateId' => 'template-uuid',
     'config' => ['greeting' => 'Welcome!'],
 ]);
 
@@ -432,11 +474,12 @@ Canned responses for agents.
 $tabi->quickReplies()->list();
 
 $tabi->quickReplies()->create([
+    'title' => 'Greeting',
     'shortcut' => '/hello',
-    'body' => 'Hello! How can I help you today?',
+    'content' => 'Hello! How can I help you today?',
 ]);
 
-$tabi->quickReplies()->update('reply-id', ['body' => 'Updated greeting']);
+$tabi->quickReplies()->update('reply-id', ['content' => 'Updated greeting']);
 $tabi->quickReplies()->delete('reply-id');
 ```
 
@@ -475,8 +518,9 @@ Third-party providers (CRM, helpdesk, etc.).
 $tabi->integrations()->listProviders();
 
 $tabi->integrations()->create([
-    'providerId' => 'hubspot',
-    'config' => ['apiKey' => 'hs_...'],
+    'provider' => 'hubspot',
+    'credentials' => ['apiKey' => 'hs_...'],
+    'config' => [],
 ]);
 
 $tabi->integrations()->list();
@@ -565,7 +609,8 @@ Successful responses that use the API’s `{ "success": true, "data": ... }` env
 
 ## Support
 
-- Issues: [github.com/Tabi-messaging/tabi-sdk-php/issues](https://github.com/Tabi-messaging/tabi-sdk-php/issues)
+- Product overview: [tabi.africa/sdks](https://tabi.africa/sdks)
+- HTTP API reference: [tabi.africa/api-docs](https://tabi.africa/api-docs)
 
 ---
 

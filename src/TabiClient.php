@@ -29,6 +29,11 @@ use Tabi\SDK\Resources\{
  *
  * Pass a workspace or channel API key for integration calls, or a user JWT when an
  * endpoint requires dashboard auth (e.g. creating API keys).
+ *
+ * Request/query parameter shapes are documented on each resource method (PHPDoc `array{…}` keys)
+ * and match the public OpenAPI schemas.
+ *
+ * @see https://tabi.africa/api-docs
  */
 class TabiClient
 {

@@ -11,7 +11,7 @@
    cd tabi-sdk-php
    ```
 
-2. **Branch, implement, document** — README, CHANGELOG, inline docblocks, optional `docs/` folder. Keep [`composer.json`](./composer.json) metadata accurate (`homepage`, `support`).
+2. **Branch, implement, document** — README, CHANGELOG, inline docblocks, optional `docs/` folder. Keep [`composer.json`](./composer.json) metadata accurate: `homepage` and **`support.docs`** should point at the public product page (`https://tabi.africa/sdks`), not a VCS URL. Do not add `support.source` if Packagist should not show a source-repository link.
 
 3. **Open a PR** to `main` (or your default branch), merge when ready.
 
@@ -42,5 +42,5 @@ If you maintain the same tree in another directory, copy those files into **this
 
 ## Before tagging
 
-- [`CHANGELOG.md`](./CHANGELOG.md) and [`README.md`](./README.md) match what users should see on GitHub/Packagist.
+- [`CHANGELOG.md`](./CHANGELOG.md) and [`README.md`](./README.md) match what users should see on Packagist and in `vendor/tabi/sdk/README.md`.
 - No secrets or env-specific URLs committed.

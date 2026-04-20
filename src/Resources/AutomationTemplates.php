@@ -6,6 +6,11 @@ namespace Tabi\SDK\Resources;
 
 use Tabi\SDK\HttpClient;
 
+/**
+ * Automation template catalog (read-only list/detail).
+ *
+ * @see https://tabi.africa/api-docs
+ */
 class AutomationTemplates
 {
     public function __construct(private readonly HttpClient $http) {}
